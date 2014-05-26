@@ -1,4 +1,4 @@
-(defproject denarius "0.1.0-SNAPSHOT"
+(defproject trafrond "0.1.0-SNAPSHOT"
   :description "Denarius Trading Frontend"
   :url "https://github.com/denarius-exchange/trafrond"
   :license {:name "MIT License"
