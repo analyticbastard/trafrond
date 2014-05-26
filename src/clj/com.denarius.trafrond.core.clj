@@ -54,13 +54,17 @@
                           10
                           )))
              :available-media-types ["text/html"]
-             :post-redirect? (fn [_] {:location "/"})
-             :handle-ok (fn [_] (print "REDIRECT") (slurp "html/login.html")))
+             :post-redirect? (fn [_] {:location "/main"})
+             :handle-ok (fn [_] (print "REDIRECT") (slurp "main")))
 
+(defresource main []
+             :available-media-types ["text/html"]
+             :handle-ok (fn [_] (slurp "html/main.html")))
 
 (defroutes app
            (POST "/login" [login password] (perform-login login password))
 
+           (GET "/main" [] (main))
            (GET "/lib/:type/:elem" [type elem] (serve-lib type elem))
            (GET "/:type/:elem" [type elem] (serve-resource type elem))
            (GET "/" [] (login-page)) ;(res-entity aliasid dbname basist id)
