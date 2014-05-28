@@ -10,6 +10,6 @@
                  [com.stuartsierra/component "0.2.1"]
                  [http-kit "2.0.0"]
                  [com.taoensso/sente "0.14.0"]]
-  :source-paths ["src/server/clj" "src/client/cljs"]
+  :source-paths ["src/clj" "src/cljs"]
   :test-paths ["test"]
-  :main denarius.core)
+  :main org.denarius.trafrond.core)

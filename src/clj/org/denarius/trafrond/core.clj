@@ -1,4 +1,4 @@
-(ns com.denarius.trafrond.core
+(ns org.denarius.trafrond.core
   (:use [org.httpkit.server :only [run-server]])
   (:require [liberator.core :refer [resource defresource]]
             [ring.middleware.params :refer [wrap-params]]
@@ -55,7 +55,8 @@
                           )))
              :available-media-types ["text/html"]
              :post-redirect? (fn [_] {:location "/main"})
-             :handle-ok (fn [_] (print "REDIRECT") (slurp "main")))
+             ;:handle-ok (fn [_] (print "REDIRECT") (slurp "main"))
+             )
 
 (defresource main []
              :available-media-types ["text/html"]
@@ -96,10 +97,14 @@
   [port connector-host connector-port join]
   (map->RESTServer {:port port :join? join :connector-host connector-host :connector-port connector-port }))
 
-(defn stop []
+
+(defn start-server! []
+  (alter-var-root #'server-component component/start))
+
+(defn stop-server! []
   (alter-var-root #'server-component component/stop))
 
-(defn restart []
+(defn restart-server! []
   (alter-var-root #'server-component component/stop)
   (alter-var-root #'server-component component/start))
 
@@ -123,5 +128,5 @@
   ""
   (let [{:keys [port connector-host connector-port]} (-> args (parse-opts program-options ) :options)]
     (alter-var-root #'server-component (fn [_] (new-rest-server port connector-host connector-port false)))
-    (alter-var-root #'server-component component/start)
+    (start-server!)
     ))
