@@ -1,6 +1,7 @@
 (ns org.denarius.trafrond.core
+  (:gen-class)
   (:use [org.httpkit.server :only [run-server]])
-  (:require [liberator.core :refer [resource defresource]]
+  (:require [liberator.core :refer [resource]]
             [ring.middleware.params :refer [wrap-params]]
             ;[ring.adapter.jetty :refer [run-jetty]]
             [compojure.core :refer [defroutes ANY GET POST]]
@@ -8,6 +9,9 @@
             ;[taoensso.sente :as sente]
             compojure.handler
             [clojure.tools.cli :refer [parse-opts]]
+            [cemerick.friend.credentials :as creds]
+            [org.denarius.trafrond.middleware.auth :as auth]
+            [org.denarius.trafrond.resources :as r :refer [defresource]]
             ))
 
 
@@ -41,29 +45,32 @@
                               (slurp filename)) ) ))
 
 (defresource login-page []
+             :allowed-methods [:get]
              :available-media-types ["text/html"]
              :handle-ok (fn [_] (slurp "html/login.html")))
 
-(defresource perform-login [login password]
+(defresource perform-login [username password]
+             :base (r/role-auth #{:user})
              :allowed-methods [:post :get]
              :post! (fn [ctx]
                       (print "POST")
                       (dosync
                         (let [body (slurp (get-in ctx [:request :body]))]
                           ;{::id id}
-                          10
+                          body
                           )))
              :available-media-types ["text/html"]
              :post-redirect? (fn [_] {:location "/main"})
-             ;:handle-ok (fn [_] (print "REDIRECT") (slurp "main"))
+             :handle-ok (fn [_] (print "OK!") "OK!!!!" )
              )
 
 (defresource main []
+             :base (r/role-auth #{:user})
              :available-media-types ["text/html"]
              :handle-ok (fn [_] (slurp "html/main.html")))
 
-(defroutes app
-           (POST "/login" [login password] (perform-login login password))
+(defroutes site-routes
+           (ANY "/login" [login password] (perform-login login password))
 
            (GET "/main" [] (main))
            (GET "/lib/:type/:elem" [type elem] (serve-lib type elem))
@@ -71,7 +78,16 @@
            (GET "/" [] (login-page)) ;(res-entity aliasid dbname basist id)
            )
 
-(def handler (-> app (wrap-params)))
+(def users
+  "dummy in-memory user database."
+  {"root" {:username "root"
+           :password (creds/hash-bcrypt "admin_password")
+           :roles #{:admin}}
+   "jane" {:username "jane"
+           :password (creds/hash-bcrypt "user_password")
+           :roles #{:user}}})
+
+(def handler (-> site-routes (auth/friend-middleware users) (compojure.handler/api) #_(wrap-params)))
 
 
 (defrecord RESTServer [port join connector-host connector-port]
