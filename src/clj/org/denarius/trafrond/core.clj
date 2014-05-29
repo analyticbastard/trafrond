@@ -66,6 +66,7 @@
 
 (defresource main []
              :base (r/role-auth #{:user})
+             :allowed-methods [:get]
              :available-media-types ["text/html"]
              :handle-ok (fn [_] (slurp "html/main.html")))
 
